@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>焦骨·烬窑 — 苏烬的数字窑房</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;700;900&display=swap">
+<style>
+/* ================= 基础 ================= */
+:root{
+  --bg:#120e0b; --bg2:#1a1410; --panel:#eadbc0; --panel2:#ddc9a6; --paper:#f0e6d0;
+  --ink:#241b12; --ink2:#4a3a28; --red:#8c3b2f; --red2:#b04a34; --ember:#e0702a;
+  --caramel:#b3773f; --gold:#a98b5f; --dim:#8d7c66; --line:#3a2d20; --fire:#ff9a3c;
+  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  --kai:"Kaiti SC","KaiTi","STKaiti","STKaiti SC",cursive;
+  --mono:Consolas,"Cascadia Mono","Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--paper); font-family:var(--serif); font-weight:400;
+  line-height:1.75; overflow-x:hidden; letter-spacing:.04em;
+}
+body::after{ /* 颗粒 */
+  content:""; position:fixed; inset:0; z-index:9998; pointer-events:none; opacity:.07;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+::selection{background:var(--red2);color:#fff}
+.hidden{display:none!important}
+.mono{font-family:var(--mono);letter-spacing:.08em}
+.kai{font-family:var(--kai)}
+a{color:inherit}
+button{font-family:var(--serif)}
+
+/* ================= 按钮 ================= */
+.btn{
+  display:inline-block; border:1px solid #4a382a; background:linear-gradient(180deg,#2e241c,#1d1611);
+  color:#eadbc0; font-size:15px; letter-spacing:.18em; padding:12px 26px; cursor:pointer;
+  text-align:center; user-select:none; transition:all .25s; position:relative; overflow:hidden;
+}
+.btn:hover:not(:disabled){border-color:#b04a34; color:#ffd9a0; box-shadow:0 0 18px rgba(176,74,52,.35)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.red{background:linear-gradient(180deg,#7c342a,#571f18); border-color:#b04a34; color:#ffe6d3}
+.btn.red:hover:not(:disabled){box-shadow:0 0 24px rgba(224,112,42,.5)}
+.btn.ghost{background:transparent;border-color:#5a4632;color:#bfae94}
+.btn.big{font-size:17px;padding:16px 42px}
+.btn:active{transform:translateY(1px)}
+
+/* ================= 序幕 ================= */
+#intro{
+  position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+  text-align:center; background:var(--bg); overflow:hidden;
+}
+#intro .bgimg{
+  position:absolute; inset:0; background-size:cover; background-position:center 30%;
+  opacity:.42; filter:grayscale(.35) contrast(1.05);
+}
+#intro .veil{position:absolute; inset:0;
+  background:radial-gradient(ellipse at 50% 38%, rgba(18,14,11,.25) 0%, rgba(18,14,11,.78) 62%, rgba(10,8,6,.96) 100%);
+}
+#intro .inner{position:relative; z-index:2; padding:24px; max-width:820px}
+#intro .eyebrow{font-size:13px; letter-spacing:.5em; color:#b98b5c; margin-bottom:18px}
+#intro h1{
+  font-size:clamp(52px,9vw,108px); font-weight:900; line-height:1.05; letter-spacing:.14em; color:#f0e0c4;
+  text-shadow:0 0 40px rgba(176,74,52,.45),0 4px 0 rgba(0,0,0,.4);
+}
+#intro h1 .dot{color:#b04a34}
+#intro .sub{margin-top:14px; font-size:clamp(15px,2.2vw,20px); letter-spacing:.55em; color:#c9a978; text-indent:.55em}
+#intro .line{margin-top:16px; font-size:14px; color:#9b8a72; letter-spacing:.18em}
+#intro .hint{margin-top:26px; font-size:13px; color:#6f6150; max-width:560px; margin-left:auto; margin-right:auto; line-height:2}
+#intro .hint b{color:#b98b5c;font-weight:600}
+#intro .ignite{margin-top:34px}
+#intro .meta{margin-top:44px; font-size:11px; color:#5a4e3e; letter-spacing:.3em}
+#intro .meta .flicker{color:#8c3b2f; animation:blink 2.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ================= 窑房主界面 ================= */
+#game{position:relative; min-height:100vh; padding:0 0 40px}
+#topbar{
+  position:sticky; top:0; z-index:50; background:rgba(18,14,11,.92); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); padding:12px 18px 10px;
+}
+#topbar .row1{display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between}
+#brand{font-size:18px; font-weight:900; letter-spacing:.3em; color:#e8d5b0}
+#brand small{display:block; font-size:10px; color:#8d7c66; letter-spacing:.4em; font-weight:400}
+#topbtns{display:flex; gap:8px; flex-wrap:wrap}
+.tb{font-size:12px; letter-spacing:.2em; padding:7px 14px; color:#c9b896; background:transparent;
+  border:1px solid #3a2d20; cursor:pointer; transition:all .25s; font-family:var(--serif)}
+.tb:hover{border-color:#b04a34; color:#ffd9a0}
+.tb.on{border-color:#8c3b2f; color:#ffd9a0; box-shadow:0 0 12px rgba(176,74,52,.3)}
+.tb.reset{border-color:#6b2a20; color:#e09a7a}
+.tb.reset:hover{border-color:#b04a34; color:#ffd9a0; background:rgba(176,74,52,.08)}
+#rail{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap}
+.rail-btn{
+  flex:1 1 0; min-width:74px; padding:8px 4px; text-align:center; cursor:pointer; border:1px solid #33281c;
+  background:transparent; color:#6f6150; font-size:13px; letter-spacing:.14em; transition:all .25s; position:relative;
+}
+.rail-btn .rc{display:block; font-size:10px; color:#8a6a48; letter-spacing:.2em}
+.rail-btn:hover{color:#d8c4a0; border-color:#5a4632}
+.rail-btn.cur{border-color:#b04a34; color:#ffd9a0; background:linear-gradient(180deg,#241a12,#1a120c); box-shadow:0 0 14px rgba(176,74,52,.25)}
+.rail-btn.done{color:#a98b5f}
+.rail-btn.done .rc{color:#b3773f}
+.rail-btn.locked{opacity:.35;cursor:not-allowed}
+
+#stage{max-width:980px; margin:0 auto; padding:26px 18px 10px; min-height:56vh}
+#fragsbar{max-width:980px; margin:34px auto 0; padding:0 18px}
+#fragsbar .flabel{font-size:12px; letter-spacing:.4em; color:#8d7c66; margin-bottom:10px}
+#frags{display:flex; gap:8px; flex-wrap:wrap}
+.fslot{
+  width:52px; height:52px; border:1px solid #3a2d20; background:#17110d; display:flex; align-items:center;
+  justify-content:center; font-size:22px; color:#3a2d20; position:relative;
+}
+.fslot::before{content:"▓"; color:#2a2118; position:absolute; font-size:16px}
+.fslot.found::before{content:""}
+.fslot.found{color:#c96f4a; border-color:#7c4a30; text-shadow:0 0 12px rgba(224,112,42,.5); animation:burnIn 1s}
+@keyframes burnIn{0%{transform:scale(1.6);opacity:0;filter:blur(4px)}100%{transform:scale(1);opacity:1;filter:blur(0)}}
+
+/* ================= 幕 ================= */
+.act-shell{animation:actIn .6s}
+@keyframes actIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.act-head{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; border-bottom:1px solid #3a2d20; padding-bottom:14px; margin-bottom:20px}
+.act-code{font-family:var(--kai); font-size:30px; color:#b04a34}
+.act-head h2{font-size:clamp(22px,3.4vw,30px); font-weight:900; letter-spacing:.3em; color:#eadbc0}
+.act-tag{font-size:12px; letter-spacing:.4em; color:#a98b5f}
+.act-poem{
+  font-family:var(--kai); font-size:clamp(17px,2.6vw,22px); color:#c9a978; line-height:2;
+  padding:6px 0 14px; min-height:3.2em;
+}
+.act-poem .glow-txt{color:#d88a4a}
+.act-craft{font-size:14px; color:#a8977c; max-width:760px; margin-bottom:24px}
+.act-stage{min-height:300px}
+.act-foot{margin-top:30px; text-align:center}
+.act-status{margin-top:16px; font-size:13px; color:#a98b5f; letter-spacing:.15em; min-height:1.6em}
+
+/* 裂隙 */
+.rift{
+  color:#c96f4a; cursor:pointer; opacity:.6; text-shadow:0 0 8px rgba(224,112,42,.45);
+  animation:riftFlick 5s infinite; transition:all .25s; font-family:var(--serif);
+}
+.rift:hover{opacity:1; color:#e0702a; text-shadow:0 0 14px rgba(224,112,42,.9)}
+.rift.found{color:#c96f4a; opacity:.95; text-shadow:0 0 10px rgba(224,112,42,.55); cursor:pointer; animation:none}
+@keyframes riftFlick{0%,80%,100%{opacity:.55}88%{opacity:.95}94%{opacity:.72}}
+
+/* ================= 交互：揉泥 ================= */
+.knead-wrap{text-align:center; padding:20px 0}
+.clay{
+  width:150px; height:110px; margin:10px auto 26px; position:relative;
+  background:radial-gradient(ellipse at 40% 35%, #a98d62, #6f5638 70%);
+  border-radius:46% 54% 48% 52%/52% 46% 58% 42%;
+  box-shadow:inset -12px -10px 24px rgba(30,20,10,.55), 0 18px 30px rgba(0,0,0,.5);
+  transition:transform .18s;
+}
+.clay.squish{transform:scale(.92,.78) rotate(-2deg)}
+.clay.kneaded{border-radius:50%; background:radial-gradient(ellipse at 42% 36%, #b69a6e, #7a5f3e 72%)}
+.knead-ctr{font-size:14px; color:#8d7c66; letter-spacing:.2em}
+.knead-ctr b{color:#e8d5b0; font-size:20px}
+
+/* ================= 交互：塑骨 ================= */
+.shape-wrap{text-align:center}
+.wheel{
+  width:120px;height:120px;border-radius:50%;border:2px solid #5a4632;margin:8px auto 18px;position:relative;
+  background:conic-gradient(from 0deg,#2a211a,#3a2d20,#2a211a,#3a2d20,#2a211a);
+}
+.wheel.spin{animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wheel::after{content:"";position:absolute;inset:14px;border-radius:50%;border:1px dashed #6f6150}
+.vessel-stage{width:150px;height:180px;margin:0 auto 16px;position:relative}
+.vessel-stage svg{position:absolute;inset:0;width:100%;height:100%}
+.vessel-stage .reveal{clip-path:inset(100% 0 0 0)}
+.shape-bar{width:min(420px,90%);height:6px;background:#241c14;border:1px solid #3a2d20;margin:6px auto 14px;position:relative}
+.shape-bar i{position:absolute;inset:0;background:linear-gradient(90deg,#8c3b2f,#e0702a);width:0%;transition:width .1s}
+.shape-pct{font-size:13px;color:#8d7c66;letter-spacing:.2em}
+
+/* ================= 交互：识花 / 图鉴卡片 ================= */
+.spec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+@media(max-width:640px){.spec-grid{grid-template-columns:repeat(2,1fr)}}
+.spec-card{
+  border:1px solid #3a2d20; background:#17110d; padding:14px 10px 12px; cursor:pointer; text-align:center;
+  transition:all .25s; position:relative;
+}
+.spec-card:hover{border-color:#b04a34; transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.spec-card .sname{font-size:16px; font-weight:900; letter-spacing:.24em; color:#e8d5b0; margin-top:6px}
+.spec-card .saka{font-size:11px; color:#8c3b2f; letter-spacing:.2em; margin-top:2px}
+.spec-card .sdesc{font-size:12px; color:#9b8a72; margin-top:8px; line-height:1.8; display:none}
+.spec-card.insp{border-color:#8c3b2f; background:#1f1610}
+.spec-card.insp .sdesc{display:block}
+.spec-card .smk{position:absolute;top:8px;right:10px;font-size:11px;color:#5a4e3e;letter-spacing:.1em}
+.spec-card.insp .smk{color:#b3773f}
+
+.quiz-box{border:1px solid #4a382a; background:#1a130e; padding:18px; margin-top:18px}
+.quiz-box h4{font-size:14px; letter-spacing:.3em; color:#c9a978; margin-bottom:12px}
+.quiz-q{margin-bottom:16px}
+.quiz-q .qt{font-size:14px; color:#eadbc0; margin-bottom:8px}
+.quiz-opts{display:flex; gap:8px; flex-wrap:wrap}
+.qo{
+  border:1px solid #3a2d20; background:#120e0b; color:#a8977c; padding:8px 14px; font-size:13px; cursor:pointer;
+  transition:all .2s; letter-spacing:.06em;
+}
+.qo:hover{border-color:#b3773f; color:#ffd9a0}
+.qo.right{border-color:#6f8c5f; color:#a8c290; box-shadow:0 0 10px rgba(111,140,95,.3)}
+.qo.wrong{border-color:#b04a34; color:#ffb4a0; animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ================= 交互：施釉 ================= */
+.glaze-wrap{text-align:center}
+.g-pots{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:18px}
+.g-pot{
+  width:104px; padding:10px 6px 8px; border:1px solid #3a2d20; cursor:pointer; background:#17110d; transition:all .2s;
+}
+.g-pot .sw{width:30px;height:30px;border-radius:50%;margin:0 auto 6px;border:1px solid rgba(0,0,0,.5);box-shadow:inset -4px -4px 8px rgba(0,0,0,.4)}
+.g-pot .gn{font-size:12px; color:#e8d5b0; letter-spacing:.14em}
+.g-pot .gd{font-size:11px; color:#6f6150; margin-top:2px; line-height:1.6}
+.g-pot.sel{border-color:#b04a34; box-shadow:0 0 14px rgba(176,74,52,.35)}
+.porcelain{width:230px; margin:10px auto; position:relative; text-align:center}
+.porcelain .pvase{width:150px;margin:-6px auto 0;display:block}
+.porcelain .ppeony{width:205px;margin:0 auto -34px;display:block;position:relative;z-index:2;filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+.porcelain.fired .ppeony{filter:drop-shadow(0 0 16px rgba(224,112,42,.5))}
+.g-zones{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:16px 0}
+.g-zone{
+  border:1px solid #3a2d20; background:#17110d; color:#a8977c; font-size:13px; padding:8px 16px; cursor:pointer;
+  letter-spacing:.2em; transition:all .2s;
+}
+.g-zone:hover{border-color:#b3773f; color:#ffd9a0}
+.g-zone.done{border-color:#8c3b2f; color:#c96f4a}
+.g-info{font-size:13px; color:#8d7c66; letter-spacing:.12em; min-height:2.4em; margin-top:8px}
+.g-info .cz{color:#c9a978}
+
+/* ================= 交互：入窑 ================= */
+.fire-wrap{text-align:center; position:relative}
+.kiln{
+  width:min(380px,88%); margin:6px auto 20px; height:230px; position:relative;
+  background:linear-gradient(180deg,#241b14,#191209); border:1px solid #3a2d20; border-radius:190px 190px 8px 8px;
+  overflow:hidden;
+}
+.kiln .door{
+  position:absolute; left:50%; bottom:-8px; transform:translateX(-50%);
+  width:70%; height:82%; border-radius:50% 50% 0 0/42% 42% 0 0;
+  background:radial-gradient(ellipse at 50% 78%, rgba(224,112,42,.85), rgba(120,40,20,.55) 55%, #1a100a 78%);
+  box-shadow:inset 0 -18px 40px rgba(0,0,0,.6), 0 0 40px rgba(224,112,42,.25);
+  transition:all .3s; opacity:.25;
+}
+.kiln .door.hot{opacity:1}
+.kiln .flame{
+  position:absolute; left:50%; bottom:34%; transform:translateX(-50%); width:44px; height:90px; pointer-events:none;
+  background:linear-gradient(to top,#ff3c00,#ff9a3c 55%,transparent); filter:blur(7px); opacity:0; transition:opacity .3s;
+  animation:flick 1.4s ease-in-out infinite;
+}
+.kiln .flame.lit{opacity:.95}
+@keyframes flick{0%,100%{transform:translateX(-50%) scale(1)}30%{transform:translateX(-47%) scale(1.12,.9)}65%{transform:translateX(-53%) scale(.94,1.06)}}
+.kiln .bars{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:58%;height:16px;
+  background:repeating-linear-gradient(90deg,#0d0906 0 12px,#33281c 12px 16px);border-radius:4px 4px 0 0}
+.gauge{width:min(420px,88%);margin:8px auto 16px;text-align:left}
+.gauge .grow{display:flex;justify-content:space-between;font-size:11px;color:#6f6150;letter-spacing:.2em;margin-bottom:6px}
+.gauge .gbar{height:8px;background:#241c14;border:1px solid #3a2d20;position:relative}
+.gauge .gbar i{position:absolute;inset:0;background:linear-gradient(90deg,#5c2a1c,#e0702a 70%,#ffb057);width:0%;transition:width .12s}
+.gauge .gtemp{font-size:22px;color:#ff9a3c;letter-spacing:.1em;font-family:var(--mono)}
+.fire-ms{min-height:4.2em; margin-top:6px; font-size:14px; color:#c9a978; line-height:2; letter-spacing:.08em}
+.legend-box{border:1px solid #7c4a30; background:linear-gradient(180deg,#20140e,#150d08); padding:16px 18px; margin-top:14px; text-align:left}
+.legend-box h5{font-size:13px; letter-spacing:.3em; color:#e0702a; margin-bottom:10px}
+.legend-box p{font-size:13.5px; color:#c9b896; line-height:2.1}
+.legend-box .she{color:#b3773f; font-family:var(--kai); font-size:14px}
+
+/* ================= 交互：出窑 ================= */
+.kiln-door-wrap{text-align:center}
+.kilndoor{width:min(300px,80%);margin:6px auto;position:relative;cursor:pointer}
+.kilndoor .kd{display:block;width:100%}
+.reveal-area{margin-top:8px}
+.lock-box{border:1px solid #7c4a30; background:#1c120c; padding:18px; margin-top:18px; text-align:center}
+.lock-box h4{font-size:14px; letter-spacing:.35em; color:#e0702a; margin-bottom:6px}
+.lock-box .lt{font-size:13px; color:#a8977c; margin-bottom:14px}
+.lock-tiles{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:12px}
+.ltile{
+  width:54px; height:54px; border:1px solid #5a4632; background:#120e0b; color:#e8d5b0; font-size:24px;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .18s; font-family:var(--serif);
+}
+.ltile:hover{border-color:#e0702a; color:#ffb057; transform:scale(1.06)}
+.ltile.used{opacity:.18; pointer-events:none}
+.lock-seq{min-height:2.4em; font-size:15px; letter-spacing:.4em; color:#c96f4a; margin-bottom:8px; font-family:var(--kai)}
+.lock-msg{font-size:13px; color:#8d7c66; min-height:1.8em}
+.lock-msg.bad{color:#ff9a8a; animation:shake .4s}
+
+/* ================= 终幕 ================= */
+#ending{
+  position:fixed; inset:0; z-index:900; background:rgba(10,7,5,.97); display:flex; align-items:center;
+  justify-content:center; text-align:center; padding:20px; opacity:0; visibility:hidden; pointer-events:none; transition:opacity 1.2s;
+}
+#ending.on{opacity:1; visibility:visible; pointer-events:auto}
+#ending .eword{font-size:clamp(34px,7vw,64px); font-weight:900; letter-spacing:.3em; color:#f0e0c4; margin:10px 0}
+#ending .eword .rd{color:#b04a34}
+#ending .porcelain-bloom{width:200px; margin:10px auto}
+#ending .sigline{margin-top:22px; font-family:var(--kai); font-size:clamp(16px,2.6vw,22px); color:#c9a978; line-height:2}
+#ending .sigline .hl{color:#ffb057}
+#ending .unlock-btn{margin-top:28px}
+
+/* ================= 弹层 ================= */
+#modal-root{position:fixed;inset:0;z-index:950;pointer-events:none}
+.modal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:rgba(8,6,4,.72);backdrop-filter:blur(4px);pointer-events:auto;opacity:0;transition:opacity .3s}
+.modal.on{opacity:1}
+.modal-box{
+  position:relative; width:min(680px,94%); max-height:84vh; overflow-y:auto; padding:30px 30px 26px;
+  background:
+    radial-gradient(ellipse at 18% 6%, rgba(140,59,47,.14), transparent 40%),
+    radial-gradient(ellipse at 88% 94%, rgba(140,59,47,.10), transparent 42%),
+    var(--panel);
+  color:var(--ink); box-shadow:0 30px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(0,0,0,.5);
+}
+.modal-box::before{content:"";position:absolute;inset:-12px;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 22% 0%, #2a1d14 0%, transparent 58%),
+             radial-gradient(ellipse at 82% 18%, #241812 0%, transparent 52%),
+             radial-gradient(ellipse at 8% 92%, #2a1d14 0%, transparent 58%),
+             radial-gradient(ellipse at 92% 96%, #241812 0%, transparent 52%);
+  filter:blur(3px);}
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;color:#6f4a3a;font-size:22px;cursor:pointer;line-height:1}
+.modal-close:hover{color:#b04a34}
+.mtitle{font-size:19px;font-weight:900;letter-spacing:.3em;color:#5c2a1c;margin-bottom:4px}
+.msub{font-size:11px;letter-spacing:.3em;color:#8a5a42;margin-bottom:16px;font-family:var(--mono)}
+.msec{margin:16px 0}
+.msec h5{font-size:13px;letter-spacing:.3em;color:#8c3b2f;margin-bottom:8px}
+.msec p,.msec li{font-size:13.5px;color:#3d2d1e;line-height:2.05}
+
+/* 裂隙档案 */
+.rip-note{
+  border:1px dashed #8a5a42; background:#f3e7cf; padding:14px 16px; margin-top:10px; position:relative;
+  font-family:var(--kai); font-size:14px; color:#4a3222; line-height:2.1;
+}
+.rip-note .frag{font-size:26px; color:#b04a34; float:right; margin:0 0 4px 10px}
+.rip-note::before{content:"";position:absolute;inset:-4px;border:1px solid rgba(140,59,47,.35);pointer-events:none}
+.rip-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.rip-chip{font-size:12px;padding:5px 10px;border:1px solid #8a5a42;color:#7a4a32;cursor:pointer;background:#f3e7cf}
+.rip-chip.found{border-color:#b04a34;color:#b04a34}
+.rip-chip.miss{opacity:.45}
+
+/* 图鉴 */
+.flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:10px 0 4px}
+.fnode{border:1px solid #b08a62;background:#f6ecd8;padding:8px 6px;text-align:center;position:relative}
+.fnode .fn{font-size:13px;color:#5c2a1c;font-weight:700;letter-spacing:.14em}
+.fnode .fd{font-size:10.5px;color:#8a5a42;margin-top:3px;letter-spacing:.06em;line-height:1.6}
+.fnode .arr{position:absolute;right:-11px;top:50%;transform:translateY(-50%);color:#b3773f;font-size:13px;z-index:2}
+.fnode:last-child .arr{display:none}
+.fnote{font-size:11.5px;color:#7a5a3e;margin-top:8px;line-height:1.9}
+.spec-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+@media(max-width:640px){.spec-mini{grid-template-columns:repeat(2,1fr)}}
+.spec-mini .smc{border:1px solid #c9a978;padding:8px 6px;text-align:center;background:#f6ecd8}
+.spec-mini .smn{font-size:13px;color:#5c2a1c;font-weight:700;letter-spacing:.16em}
+.spec-mini .sms{font-size:10.5px;color:#8a5a42}
+.poem-line{font-family:var(--kai);font-size:14px;color:#4a3222;margin:6px 0;line-height:2}
+.poem-line .src{font-size:11px;color:#8a5a42;margin-left:8px;letter-spacing:.1em}
+
+/* 0号档案 */
+.dossier-hero{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+.dossier-hero .dimg{width:150px;flex:0 0 150px}
+.dossier-hero .dimg img{width:100%;display:block;border:1px solid #b08a62}
+.dossier-hero .dmain{flex:1;min-width:230px}
+.dname{font-size:26px;font-weight:900;letter-spacing:.4em;color:#5c2a1c}
+.dalias{font-size:12px;color:#8a5a42;letter-spacing:.18em;margin-top:2px}
+.dstats{font-size:12.5px;color:#3d2d1e;line-height:2.1;margin-top:8px}
+.dstats b{color:#8c3b2f}
+.kv{display:grid;grid-template-columns:64px 1fr;gap:4px 10px;font-size:13px;color:#3d2d1e;line-height:1.95;margin-top:8px}
+.kv dt{color:#8c3b2f;letter-spacing:.2em;font-size:12px}
+.kv dd{color:#4a3222}
+.dsig{
+  margin-top:16px; border-left:3px solid #b04a34; padding:10px 16px; background:#f3e7cf; font-family:var(--kai);
+  font-size:15px; color:#5c2a1c; line-height:2;
+}
+.dsig .who{display:block;font-size:11px;color:#8a5a42;margin-top:6px;letter-spacing:.2em}
+.dimgline{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.dimgline figure{flex:1;min-width:130px;text-align:center}
+.dimgline img{width:100%;max-width:170px;border:1px solid #b08a62}
+.dimgline figcaption{font-size:11px;color:#8a5a42;letter-spacing:.16em;margin-top:4px}
+.note-old{border:1px dashed #8a5a42;padding:10px 14px;font-size:12.5px;color:#7a4a32;background:#f3e7cf;line-height:1.9;margin-top:14px}
+.srcnote{font-size:10.5px;color:#8a5a42;margin-top:16px;line-height:1.8;letter-spacing:.04em}
+
+/* ================= 动效 ================= */
+@keyframes glowpulse{0%,100%{box-shadow:0 0 18px rgba(224,112,42,.35)}50%{box-shadow:0 0 34px rgba(224,112,42,.7)}}
+.glowpulse{animation:glowpulse 2.4s infinite}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.fadein{animation:fadein .8s}
+
+/* ================= 响应式 ================= */
+@media(max-width:640px){
+  #topbar{padding:10px 10px 8px}
+  #brand{font-size:15px}
+  .act-foot .btn{width:100%}
+  .modal-box{padding:22px 18px 20px}
+  .porcelain{width:190px}
+  .porcelain .ppeony{width:170px}
+  .porcelain .pvase{width:124px}
+  .flow{grid-template-columns:repeat(3,1fr)}
+  #intro .hint{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01s!important;transition-duration:.01s!important}
+}
+noscript .ns{color:#fff;padding:40px;text-align:center}
+</style>
+</head>
+<body>
+<!-- 如果你读到这行字：窑温 1320℃ 时，她正站在窑口。别关灯。 -->
+<noscript><div class="ns">此窑房需要 JavaScript 才能点火。</div></noscript>
+
+<!-- ===== 视图：序幕 ===== -->
+<section id="intro">
+  <div class="bgimg" id="introBg"></div>
+  <div class="veil"></div>
+  <div class="inner">
+    <div class="eyebrow">苏烬工作室 · 数字窑房 · ARG 交互档案</div>
+    <h1>焦骨<span class="dot">·</span>烬窑</h1>
+    <div class="sub">六幕窑作 · 牡丹瓷制作体验</div>
+    <div class="line">在火里学会一朵牡丹——识她的颜色、脾气与骨气。</div>
+    <div class="hint">窑壁上藏着<b>六道裂隙</b>。找到它们，读完全部灰烬，才能解开窑门上的封印。<br>本页面并非官方页面。请勿在子夜之后久留。</div>
+    <div class="ignite"><button class="btn red big" id="igniteBtn">点火入窑</button></div>
+    <div class="meta">档案编号 SD-0-0926 · 更新时间 2026.09 <span class="flicker">▲ 档案状态：读取中</span></div>
+  </div>
+</section>
+
+<!-- ===== 视图：窑房 ===== -->
+<section id="game" class="hidden">
+  <header id="topbar">
+    <div class="row1">
+      <div id="brand">烬窑<small>焦骨牡丹 · ARG 数字档案</small></div>
+      <div id="topbtns">
+        <button class="tb" id="btnCodex">牡丹图鉴</button>
+        <button class="tb" id="btnRifts">裂隙档案</button>
+        <button class="tb" id="btnSound">声音 · 开</button>
+        <button class="tb reset" id="btnReset">重新开始</button>
+      </div>
+    </div>
+    <nav id="rail"></nav>
+  </header>
+  <main id="stage"></main>
+  <div id="fragsbar">
+    <div class="flabel">裂隙残字</div>
+    <div id="frags"></div>
+  </div>
+  <div style="text-align:center;padding:36px 0 8px;font-size:10px;color:#4a3c2e;letter-spacing:.3em" class="mono">档案编号 SD-0-0926 · 本页面并非官方页面 · 请勿在子夜之后久留</div>
+</section>
+
+<!-- ===== 弹层容器 ===== -->
+<div id="modal-root"></div>
+
+<!-- ===== 终幕 ===== -->
+<div id="ending">
+  <div>
+    <div id="endingWords"></div>
+    <div class="porcelain-bloom" id="endingBloom"></div>
+    <div class="sigline" id="endingSig"></div>
+    <div class="unlock-btn"><button class="btn red" id="unlockDossier">解锁 0 号档案</button> <button class="btn ghost" id="closeEnding">回到窑房</button></div>
+  </div>
+</div>
+
+<!-- ===== 共享 SVG 定义 ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="pt" d="M100,100 C96,74 80,60 75,47 C80,41 90,45 96,53 C94,35 100,25 100,25 C100,25 106,35 104,53 C110,45 120,41 125,47 C120,60 104,74 100,100 Z"/>
+    <path id="leaf" d="M0,0 C14,-8 30,-8 44,0 C30,8 14,8 0,0 Z"/>
+  </defs>
+</svg>
+
+<script>
+'use strict';
+/* ================= 工具 ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shade=(hex,amt)=>{let n=parseInt(hex.slice(1),16);const r=Math.max(0,Math.min(255,(n>>16)+amt)),g=Math.max(0,Math.min(255,((n>>8)&255)+amt)),b=Math.max(0,Math.min(255,(n&255)+amt));return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');};
+
+/* ================= 音效（WebAudio 合成） ================= */
+const SFX=(()=>{
+  let ctx=null,on=true;
+  const ac=()=>{if(!ctx){try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ctx&&ctx.state==='suspended')ctx.resume();return ctx;};
+  const noiseBuf=c=>{const b=c.createBuffer(1,c.sampleRate*.5,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;};
+  const blip=(f=620,t=.07,type='sine',g=.1)=>{const c=ac();if(!c)return;const o=c.createOscillator(),v=c.createGain();o.type=type;o.frequency.value=f;v.gain.setValueAtTime(g,c.currentTime);v.gain.exponentialRampToValueAtTime(.0001,c.currentTime+t);o.connect(v).connect(c.destination);o.start();o.stop(c.currentTime+t);};
+  const whoosh=()=>{const c=ac();if(!c)return;const s=c.createBufferSource(),f=c.createBiquadFilter(),v=c.createGain();s.buffer=noiseBuf(c);f.type='bandpass';f.Q.value=.7;f.frequency.setValueAtTime(180,c.currentTime);f.frequency.exponentialRampToValueAtTime(2400,c.currentTime+.55);v.gain.setValueAtTime(.22,c.currentTime);v.gain.exponentialRampToValueAtTime(.001,c.currentTime+.6);s.connect(f);f.connect(v);v.connect(c.destination);s.start();};
+  const crackle=()=>{const c=ac();if(!c)return;const n=5+Math.floor(Math.random()*6);for(let i=0;i<n;i++){const t=c.currentTime+Math.random()*.5,s=c.createBufferSource(),f=c.createBiquadFilter(),v=c.createGain();s.buffer=noiseBuf(c);f.type='highpass';f.frequency.value=1400+Math.random()*2600;v.gain.setValueAtTime(.04+Math.random()*.07,t);v.gain.exponentialRampToValueAtTime(.001,t+.045);s.connect(f);f.connect(v);v.connect(c.destination);s.start(t);s.stop(t+.06);}};
+  const chime=()=>{blip(523,.16,'sine',.12);setTimeout(()=>blip(784,.24,'sine',.12),110);};
+  const thud=()=>{blip(150,.18,'square',.06);};
+  const play=n=>{if(!on)return;try{({blip:()=>blip(),whoosh,chime,crackle,thud}[n])();}catch(e){}};
+  return{play,get on(){return on;},set on(v){on=v;},ac};
+})();
+
+/* ================= 档案数据 ================= */
+const FRAG_CHARS=['焦','骨','牡','丹','苏','生'];
+const LOCK_WORD=['焦','骨','牡','丹','苏','生'];
+const DECOYS=['灰','火'];
+const ACTS=[
+  {code:'壹',title:'揉泥',tag:'排尽虚妄',type:'knead',
+   poem:'把浮躁的气，一点一点，挤出去。',
+   craft:'洛阳牡丹瓷，以高岭土与白泥为胎。泥须陈腐、揉练、拍打，排出空气、匀净水分——气泡不排尽，入窑必裂。揉泥如揉心：把浮躁的气，一点一点挤出去。',
+   next:'泥已揉顺 → 塑骨'},
+  {code:'贰',title:'塑骨',tag:'拉坯成形',type:'shape',
+   poem:'骨正，花才立得住。',
+   craft:'搓条、编盘、捏塑，先定器身。牡丹瓷以盘、瓶、壁挂为形，器是花的骨。骨不正，再艳的花也站不稳。',
+   next:'骨已立住 → 捏花'},
+  {code:'叁',title:'捏花',tag:'先识花',type:'flower',
+   poem:'做花之前，先识花。',
+   craft:'一朵牡丹瓷花，五层四十余片花瓣，全部手工一片片捏制，薄如蝉翼。捏花之前，先来识花——识她的颜色、脾气与骨气。',
+   next:'识花已毕 → 施釉'},
+  {code:'肆',title:'施釉',tag:'焦土三色',type:'glaze',
+   poem:'釉是瓷的皮肤，也是花的脾气。',
+   craft:'素烧定型后施釉。牡丹瓷经釉上、釉中、釉下诸法，再入高温烧成。釉色即性情——这间工作室只备三色。',
+   next:'釉已上齐 → 入窑'},
+  {code:'伍',title:'入窑',tag:'火烧上林',type:'fire',
+   poem:'火不欺人。',
+   craft:'素烧后的瓷，要经约一昼夜、1300℃以上的高温釉烧。火不欺人——窑门一关，好坏各凭本事；温度稍偏，整件作废。',
+   next:'窑门已锁 → 出窑'},
+  {code:'陆',title:'出窑',tag:'焦骨苏生',type:'kiln',
+   poem:'焦骨牡丹，苏生。',
+   craft:'熄火、降温、开窑。焦褐的灼痕烙在花瓣边缘——那是时间盖下的火漆印。被灼烧过，依然盛放。'}
+];
+const RIFTS=[
+  'Ⅰ · 雨声很大。她把获奖证书一张张丢进铁盆。火先吃掉纸，再吃掉名字。灰烬里好像有字。',
+  'Ⅱ · 方案被剽窃那天，她没哭。她把原稿的轮廓重新描了一遍，像描一具骨。',
+  'Ⅲ · 客户说：画得再甜一点。她放下笔。牡丹从来不甜。',
+  'Ⅳ · 通宵改稿后，总监只说“不够好”。她想起窑边那句话：釉要上厚，火候要够。',
+  'Ⅴ · 工牌在火里卷起来，塑料的焦味刺鼻。她忽然觉得轻松——她终于烧掉了那个听话的自己。',
+  'Ⅵ · 如今她在牛皮纸上画《焦骨牡丹》。炭笔的灰落在纸上，像雪。她说：伤疤不是瑕疵，是釉。'
+];
+const SPECIMENS=[
+  {n:'姚黄',aka:'花王',d:'淡黄如金，千叶层叠。宋人奉为“花王”，洛阳名品之首。',c:{p1:'#e3b55f',p1b:'#d9a64e',p2:'#cf9a42',p3:'#c28d37',cc:'#7a5c2a'}},
+  {n:'魏紫',aka:'花后',d:'紫红如缎，花大如盘。与姚黄并称“姚黄魏紫”，一王一后。',c:{p1:'#6d2f4f',p2:'#5e2844',p3:'#4f2038',cc:'#3d1c2c'}},
+  {n:'赵粉',aka:'娇而不媚',d:'淡粉如霞。牡丹里最温柔的一支——温柔，不等于顺从。',c:{p1:'#e9b7bd',p2:'#e0a5ae',p3:'#d4939f',cc:'#8f5a5f'}},
+  {n:'豆绿',aka:'珍品',d:'绿如豆青，世间稀有。色奇而不妖，传为牡丹中的绝品。',c:{p1:'#a8b98a',p2:'#97ab79',p3:'#86996a',cc:'#4f5c3e'}},
+  {n:'二乔',aka:'一花双色',d:'红粉相间，同一条枝上开两种性子。像她的名字，也像她。',c:{p1:'#c14a5e',p1b:'#e8a7b8',p2:'#b23f52',p3:'#a8354a',cc:'#6b2432'}},
+  {n:'洛阳红',aka:'花开动京城',d:'洛阳最经典的花色。“花开时节动京城”的那一朵。',c:{p1:'#b0343e',p2:'#9f2c38',p3:'#8d2632',cc:'#5c1c24'}}
+];
+const QUIZ=[
+  {q:'传说中，哪位女皇寒冬下令百花齐放，独牡丹抗旨不开？',o:['杨玉环','武则天','上官婉儿'],a:1},
+  {q:'“唯有牡丹真国色，花开时节动京城”出自谁？',o:['白居易','李白','刘禹锡'],a:2},
+  {q:'牡丹瓷的花朵，是怎么做出来的？',o:['模具一次成型','手工一片片捏制','3D 打印'],a:1}
+];
+const GLAZES=[
+  {k:'black',n:'炭黑 · 玄夜',d:'夜的底色。沉得住，才亮得起。',petal:'#32281e',heart:'#201711',body:'#2a211a'},
+  {k:'red',n:'赭石红 · 焦土',d:'灼烧过的痕迹。不回避伤疤，就是她。',petal:'#8c3b2f',heart:'#63241d',body:'#7a3026'},
+  {k:'white',n:'米白 · 素胎',d:'初心的颜色。火烧一百次，白的仍是白的。',petal:'#e8d9bd',heart:'#d3bd94',body:'#efe3cb'}
+];
+
+/* ================= 状态 ================= */
+const KEY='sujin-yao-v1';
+let S={act:0,maxUnlocked:0,done:[false,false,false,false,false,false],knead:0,shape:0,
+  spec:[false,false,false,false,false,false],qA:[null,null,null],glaze:{petal:null,heart:null,body:null},
+  pick:null,temp:0,opened:false,rifts:[false,false,false,false,false,false],lockSeq:[],lockDone:false,qWrong:null,started:false};
+function loadS(){try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);S=Object.assign(S,o);}}catch(e){}}
+function saveS(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function setDone(i){S.done[i]=true;if(i===S.maxUnlocked)S.maxUnlocked=Math.min(i+1,5);saveS();render();}
+
+/* ================= 牡丹 / 瓷器 SVG ================= */
+function peonySVG(v,fired){
+  const sc=(a,s,f)=>`<use href="#pt" xlink:href="#pt" transform="translate(100 100) rotate(${a}) scale(${s}) translate(-100 -100)" fill="${f}" opacity=".94"/>`;
+  let L1='';for(let i=0;i<8;i++){const f=(v.p1b&&i%2===1)?v.p1b:v.p1;L1+=sc(i*45,1,f);}
+  let L2='';for(let i=0;i<8;i++)L2+=sc(i*45+22.5,.76,v.p2);
+  let L3='';for(let i=0;i<6;i++)L3+=sc(i*60+12,.5,v.p3);
+  let st='<circle cx="100" cy="100" r="8" fill="'+v.cc+'"/>';
+  for(let i=0;i<10;i++){const a=i*36;st+='<circle cx="'+(100+Math.cos(a*Math.PI/180)*13).toFixed(1)+'" cy="'+(100+Math.sin(a*Math.PI/180)*13).toFixed(1)+'" r="3" fill="'+v.cc+'"/>';}
+  let burns='';
+  if(fired){for(let i=0;i<8;i++){const a=i*45+11,r=58+Math.random()*10;burns+='<circle cx="'+(100+Math.cos(a*Math.PI/180)*r).toFixed(1)+'" cy="'+(100+Math.sin(a*Math.PI/180)*r).toFixed(1)+'" r="'+(3+Math.random()*4).toFixed(1)+'" fill="#3a2417" opacity=".4"/>';}}
+  return '<svg class="ppeony" viewBox="0 0 200 200" aria-hidden="true">'+L1+L2+L3+st+burns+'</svg>';
+}
+function vaseSVG(color,fired){
+  let extra='';
+  if(fired){extra+='<path d="M88,244 Q94,238 100,244 Q106,250 112,244" stroke="#3a2417" stroke-width="2.6" fill="none" opacity=".75"/>'
+    +'<path d="M90,272 Q98,266 106,272" stroke="#3a2417" stroke-width="2.2" fill="none" opacity=".6"/>'
+    +'<path d="M84,292 Q92,286 100,292" stroke="#3a2417" stroke-width="2" fill="none" opacity=".5"/>';}
+  return '<svg class="pvase" viewBox="0 0 200 320" aria-hidden="true">'
+    +'<path d="M74,300 C74,262 80,224 92,200 L108,200 C120,224 126,262 126,300 C126,318 112,322 100,322 C88,322 74,318 74,300 Z" fill="'+color+'" stroke="rgba(0,0,0,.35)" stroke-width="2"/>'
+    +'<path d="M90,200 C90,192 94,186 100,186 C106,186 110,192 110,200 C110,208 106,212 100,212 C94,212 90,208 90,200 Z" fill="'+shade(color,26)+'"/>'
+    +'<path d="M82,310 L118,310 L114,318 L86,318 Z" fill="'+shade(color,-18)+'"/>'+extra+'</svg>';
+}
+function porcelainHTML(pv,body,fired){return '<div class="porcelain'+(fired?' fired':'')+'">'+peonySVG(pv,fired)+vaseSVG(body,fired)+'</div>';}
+const NEUTRAL={petal:'#e2d3b4',heart:'#cdb891',body:'#efe6d2'};
+
+/* ================= 渲染调度 ================= */
+function render(){renderRail();renderFrags();renderAct();}
+function renderRail(){
+  $('rail').innerHTML=ACTS.map((a,i)=>'
+    '<button class="rail-btn '+(i===S.act?'cur':'')+(S.done[i]?' done':'')+(i<=S.maxUnlocked?'':' locked')+'" data-a="'+i+'"><span class="rc">'+a.code+'</span>'+a.title+'</button>').join('');
+}
+function renderFrags(){
+  $('frags').innerHTML=FRAG_CHARS.map((c,i)=>
+    '<div class="fslot'+(S.rifts[i]?' found':'')+'">'+(S.rifts[i]?c:'')+'</div>').join('');
+}
+function poemHtml(i){
+  const a=ACTS[i];
+  return '<p class="act-poem">'+a.poem+'<span class="rift'+(S.rifts[i]?' found':'')+'" data-r="'+i+'" title="烧焦的残字——点它读取">'+FRAG_CHARS[i]+'</span></p>';
+}
+function actShell(i,stage,foot){
+  const a=ACTS[i];
+  return '<article class="act-shell">'
+    +'<header class="act-head"><span class="act-code">'+a.code+'</span><h2>'+a.title+'</h2><span class="act-tag">'+a.tag+'</span></header>'
+    +poemHtml(i)
+    +'<p class="act-craft">'+a.craft+'</p>'
+    +'<div class="act-stage">'+stage+'</div>'
+    +'<footer class="act-foot">'+foot+'</footer>'
+    +'</article>';
+}
+function nextBtn(i){
+  if(i>=5)return '<div class="act-status" id="actStatus"></div>';
+  const label=ACTS[i].next||'下一步';
+  return '<button class="btn next" id="nextBtn" '+(S.done[i]?'':'disabled')+'>'+label+'</button>';
+}
+function renderAct(){
+  const i=S.act,a=ACTS[i],st=$('stage');
+  let body='';
+  if(a.type==='knead')body=buildKnead(i);
+  else if(a.type==='shape')body=buildShape(i);
+  else if(a.type==='flower')body=buildFlower(i);
+  else if(a.type==='glaze')body=buildGlaze(i);
+  else if(a.type==='fire')body=buildFire(i);
+  else if(a.type==='kiln')body=buildKiln(i);
+  st.innerHTML=actShell(i,body,nextBtn(i));
+  bindAct(i);
+}
+/* ================= 六幕构建器 ================= */
+function G(k){return GLAZES.find(g=>g.k===k);}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function buildKnead(i){
+  const need=12,n=S.knead,done=S.knead>=need;
+  return '<div class="knead-wrap">'
+    +'<div class="clay'+(done?' kneaded':'')+'" id="clay"></div>'
+    +'<div class="knead-ctr">已揉练 <b id="kctr">'+Math.min(n,need)+'</b> / '+need+' 次 · 气泡排出中</div>'
+    +'<div style="margin-top:18px"><button class="btn" id="kneadBtn"'+(done?' disabled':'')+'>揉</button></div>'
+    +'<div class="act-status">'+(done?'泥性已顺。这一团土，现在肯听话了。':'')+'</div>'
+    +'</div>';
+}
+function buildShape(i){
+  const p=Math.min(S.shape,100);
+  return '<div class="shape-wrap">'
+    +'<div class="wheel" id="wheel"></div>'
+    +'<div class="vessel-stage"><div style="opacity:.45">'+vaseSVG('#3a2d20',false)+'</div>'
+    +'<div class="reveal" id="vesselReveal" style="clip-path:inset('+(100-p)+'% 0 0 0)">'+vaseSVG('#b09068',false)+'</div></div>'
+    +'<div class="shape-bar"><i id="shapeBar" style="width:'+p+'%"></i></div>'
+    +'<div class="shape-pct">拉坯进度 <b id="shapePct">'+Math.round(p)+'</b>%</div>'
+    +'<div style="margin-top:16px"><button class="btn" id="shapeBtn"'+(S.shape>=100?' disabled':'')+'>按住拉坯</button></div>'
+    +'<div class="act-status">'+(S.shape>=100?'器身已成。骨立住了。':'')+'</div>'
+    +'</div>';
+}
+function buildFlower(i){
+  const all=S.spec.every(Boolean),allRight=S.qA.every(x=>x===true);
+  const cards=SPECIMENS.map((s,j)=>
+    '<div class="spec-card'+(S.spec[j]?' insp':'')+'" data-s="'+j+'">'
+    +'<span class="smk">'+(S.spec[j]?'已查验':'未查验')+'</span>'
+    +peonySVG(s.c,false)
+    +'<div class="sname">'+s.n+'</div><div class="saka">'+s.aka+'</div>'
+    +'<div class="sdesc">'+s.d+'</div></div>').join('');
+  let quiz='';
+  if(all){
+    quiz='<div class="quiz-box"><h4>识花小考</h4>'
+      +QUIZ.map((q,j)=>'<div class="quiz-q"><div class="qt">'+(j+1)+'. '+q.q+'</div><div class="quiz-opts">'
+        +q.o.map((op,k)=>{
+          let cls='qo';
+          if(S.qA[j]===true&&k===q.a)cls+=' right';
+          else if(S.qA[j]===false&&S.qWrong&&S.qWrong[0]===j&&S.qWrong[1]===k)cls+=' wrong';
+          return '<button class="'+cls+'" data-q="'+j+'" data-k="'+k+'"'+(S.qA[j]===true?' disabled':'')+'>'+op+'</button>';
+        }).join('')+'</div></div>').join('')
+      +'</div>';
+  }
+  return '<div class="spec-grid">'+cards+'</div>'+quiz
+    +'<div class="act-status">'+(allRight?'识花已毕。记住：牡丹不甜，牡丹有骨。':(all?'全部查验完毕，请完成识花小考。':''))+'</div>';
+}
+function buildGlaze(i){
+  const gz=S.glaze;
+  const pet=G(gz.petal)?G(gz.petal).petal:NEUTRAL.petal,hrt=G(gz.heart)?G(gz.heart).heart:NEUTRAL.heart,bdy=G(gz.body)?G(gz.body).body:NEUTRAL.body;
+  const pv={p1:pet,p2:shade(pet,-14),p3:shade(pet,-24),cc:hrt};
+  const all=!!(gz.petal&&gz.heart&&gz.body);
+  const pots=GLAZES.map(g=>'<div class="g-pot'+(S.pick===g.k?' sel':'')+'" data-g="'+g.k+'"><div class="sw" style="background:'+g.petal+'"></div><div class="gn">'+g.n+'</div><div class="gd">'+g.d+'</div></div>').join('');
+  const zone=(key,label)=>'<button class="g-zone'+(gz[key]?' done':'')+'" data-zone="'+key+'">'+label+'<br><small>'+(gz[key]?G(gz[key]).n.split(' · ')[1]:'未上釉')+'</small></button>';
+  return '<div class="glaze-wrap">'
+    +'<div class="g-pots">'+pots+'</div>'
+    +porcelainHTML(pv,bdy,false)
+    +'<div class="g-zones">'+zone('petal','花瓣')+zone('heart','花心')+zone('body','器身')+'</div>'
+    +'<div class="g-info">'+(S.pick?'已握釉色：<span class="cz">'+G(S.pick).n+'</span>，点击下方部位施釉':'')+'</div>'
+    +'<div class="act-status">'+(all?'三色各归其位。釉已上，火候未到。':'')+'</div>'
+    +'</div>';
+}
+function buildFire(i){
+  const t=S.temp;
+  const ms=t>=1320?'窑内 1320℃。釉水熔融，火色正旺——':t>=950?'950℃。素烧的临界。瓷骨变硬，如同人学会不弯腰。':t>=300?'300℃。水分蒸干，泥胎初定。':'窑内尚冷。添柴，让火醒过来。';
+  const legend=t>=1320?'<div class="legend-box fadein"><h5>窑中见闻 · 焦骨牡丹</h5><p>相传，武则天寒冬游上苑，下诏令百花连夜开放。百花畏威而开，唯有牡丹严守花期，拒不绽放。女皇震怒，将牡丹贬至洛阳，更以火焚之。谁知焦枝残干，次年竟开得更盛——枝上的焦痕，成了“焦骨牡丹”的名字。<br><span class="she">—— 她烧掉证书与工牌的那个暴雨夜，是她的“火烧上林苑”。牡丹没死。她也没有。</span></p></div>':'';
+  return '<div class="fire-wrap">'
+    +'<div class="kiln"><div class="door'+(t>0?' hot':'')+'"></div><div class="flame'+(t>0?' lit':'')+'"></div><div class="bars"></div></div>'
+    +'<div class="gauge"><div class="grow"><span>0</span><span>300</span><span>950</span><span>1320℃</span></div>'
+    +'<div class="gbar"><i style="width:'+Math.min(t/1320*100,100)+'%"></i></div><div class="gtemp">'+Math.round(t)+' ℃</div></div>'
+    +'<div class="fire-ms">'+ms+'</div>'
+    +legend
+    +'<div style="margin-top:16px"><button class="btn red" id="fireBtn"'+(t>=1320?' disabled':'')+'>'+(t>=1320?'火候已足':'按住添柴')+'</button></div>'
+    +'<div class="act-status">'+(t>=1320?'窑门已锁。剩下的，交给火。':'')+'</div>'
+    +'</div>';
+}
+function buildKiln(i){
+  if(!S.opened){
+    return '<div class="kiln-door-wrap">'
+      +'<svg class="kilndoor" viewBox="0 0 220 260"><path d="M110,14 C60,14 34,52 34,112 L34,238 L186,238 L186,112 C186,52 160,14 110,14 Z" fill="#241b14" stroke="#4a382a" stroke-width="3"/>'
+      +'<path d="M110,34 C74,34 56,64 56,112 L56,220 L164,220 L164,112 C164,64 146,34 110,34 Z" fill="#0e0a07"/>'
+      +'<circle cx="110" cy="96" r="40" fill="#2a1d14"/><text x="110" y="104" text-anchor="middle" font-size="15" fill="#8d7c66" letter-spacing="3" font-family="serif">封</text></svg>'
+      +'<div style="margin-top:12px"><button class="btn red big glowpulse" id="openKiln">开窑</button></div>'
+      +'<div class="act-status"></div></div>';
+  }
+  const pv={p1:'#c2563c',p1b:'#b3482f',p2:'#a83f2c',p3:'#94362a',cc:'#6b2420'};
+  let after='';
+  if(!S.lockDone){
+    const found=S.rifts.filter(Boolean).length;
+    if(found>=6){
+      const tiles=shuffle([...LOCK_WORD,...DECOYS]);
+      after='<div class="lock-box fadein"><h4>窑门上的封印</h4>'
+        +'<div class="lt">六道裂隙，六块残字。按它们被烧出来的顺序，放回窑门。</div>'
+        +'<div class="lock-seq" id="lockSeq"></div>'
+        +'<div class="lock-tiles" id="lockTiles">'+tiles.map((c,j)=>'<button class="ltile" data-c="'+c+'">'+c+'</button>').join('')+'</div>'
+        +'<div class="lock-msg" id="lockMsg"></div></div>';
+    }else{
+      after='<div class="lock-box"><h4>封印未解</h4><div class="lt">窑壁上还有 '+(6-found)+' 道裂隙没有找到。回去看看——每幕的诗句里，都烧着一道。</div></div>';
+    }
+  }else{
+    after='<div style="text-align:center;margin-top:16px"><button class="btn red" id="openDossier">查看 0 号档案 · 苏烬</button></div>';
+  }
+  return '<div class="kiln-door-wrap">'
+    +'<div class="reveal-area">'+porcelainHTML(pv,'#f2e6cd',true)+'</div>'
+    +'<div class="act-status">焦褐的灼痕，烙在花瓣边缘。焦骨牡丹，苏生。</div>'
+    +after+'</div>';
+}
+
+/* ================= 终幕 ================= */
+function startEnding(){
+  saveS();render();
+  const e=$('ending');e.classList.add('on');
+  const wd=$('endingWords');wd.innerHTML='';
+  $('endingBloom').innerHTML=porcelainHTML({p1:'#c0523c',p1b:'#b0492f',p2:'#a33d2a',p3:'#8f3326',cc:'#6b2420'},'#f2e6cd',true);
+  $('endingSig').textContent='';
+  const words=['焦骨','牡丹','苏生'];
+  let idx=0;
+  const iv=setInterval(()=>{
+    if(idx<words.length){
+      const sp=document.createElement('div');sp.className='eword';
+      sp.innerHTML=idx===2?'<span class="rd">苏生</span>':'<span>'+words[idx]+'</span>';
+      wd.appendChild(sp);SFX.play('chime');idx++;
+    }else{clearInterval(iv);typeSig();}
+  },950);
+  function typeSig(){
+    const s='「抱歉，我烧过的东西，不会再烧第二次。」',el=$('endingSig');let k=0;
+    const iv2=setInterval(()=>{k++;el.innerHTML='<span class="hl">'+esc(s.slice(0,k))+'</span><br><span style="font-size:12px;letter-spacing:.3em;color:#8d7c66">—— 苏烬 · 《焦骨牡丹》系列</span>';if(k>=s.length)clearInterval(iv2);},60);
+  }
+}
+
+/* ================= 弹层 ================= */
+let curModal=null;
+function closeModal(){if(curModal){curModal.classList.remove('on');const m=curModal;setTimeout(()=>m.remove(),320);curModal=null;}}
+function openModal(title,sub,body){
+  closeModal();
+  const root=$('modal-root'),m=document.createElement('div');m.className='modal';
+  m.innerHTML='<div class="modal-box"><button class="modal-close" aria-label="关闭">×</button><div class="mtitle">'+title+'</div><div class="msub">'+sub+'</div><div class="mbody">'+body+'</div></div>';
+  root.appendChild(m);curModal=m;requestAnimationFrame(()=>m.classList.add('on'));
+  m.addEventListener('click',e=>{if(e.target===m)closeModal();});
+  m.querySelector('.modal-close').addEventListener('click',closeModal);
+  return m;
+}
+function openRift(i){
+  SFX.play('blip');
+  if(!S.rifts[i]){S.rifts[i]=true;saveS();render();}
+  openModal('裂隙档案','SD-R-0'+(i+1)+' · 已烧录 '+S.rifts.filter(Boolean).length+'/6',
+    '<p style="font-size:12px;color:#8a5a42;letter-spacing:.2em">窑壁裂隙 · 第 '+(i+1)+' 道</p>'
+    +'<div class="rip-note"><span class="frag">'+FRAG_CHARS[i]+'</span>'+RIFTS[i]+'</div>');
+}
+function openRiftList(){
+  let chips='';
+  for(let i=0;i<6;i++)chips+='<button class="rip-chip'+(S.rifts[i]?' found':' miss')+'" data-r="'+i+'">'+(i+1)+' · '+(S.rifts[i]?FRAG_CHARS[i]:'未读取')+'</button>';
+  const m=openModal('裂隙档案','共六道 · 读取进度 '+S.rifts.filter(Boolean).length+'/6',
+    '<p style="font-size:13px;color:#3d2d1e">窑壁上烧着六道裂隙，每道藏一个字。集齐六字，可解窑门封印。</p><div class="rip-list">'+chips+'</div>');
+  m.querySelectorAll('.rip-chip').forEach(el=>el.addEventListener('click',()=>{if(S.rifts[+el.dataset.r]){closeModal();openRift(+el.dataset.r);}}));
+}
+function codexBody(){
+  const flow=[['揉泥','排泡匀水'],['塑骨','拉坯定形'],['捏花','五层四十片'],['素烧','约950℃定型'],['施釉','釉上釉下釉中'],['釉烧','1300℃+一昼夜'],['出窑','焦骨苏生']];
+  const fhtml=flow.map((f,j)=>'<div class="fnode"><div class="fn">'+f[0]+'</div><div class="fd">'+f[1]+'</div>'+(j<flow.length-1?'<span class="arr">→</span>':'')+'</div>').join('');
+  const specs=SPECIMENS.map(s=>'<div class="smc"><div class="smn">'+s.n+'</div><div class="sms">'+s.aka+'</div></div>').join('');
+  return '<div class="msec"><h5>花王小传</h5><p>牡丹，芍药科芍药属落叶灌木，原产中国，栽培历史逾千年。花大色艳、雍容端庄，被誉为“花中之王”“国色天香”，自古象征富贵、吉祥、圆满与繁荣。洛阳地脉花最宜，牡丹尤为天下奇——洛阳牡丹根植河洛，始于隋、盛于唐、甲天下于宋。</p></div>'
+    +'<div class="msec"><h5>窑作流程</h5><div class="flow">'+fhtml+'</div><div class="fnote">一朵牡丹瓷花，五层四十余片花瓣，全手工捏制；一件作品从进窑到出窑，历经素烧、反复浸釉与高温釉烧，需约一周，烧成率不足四成。</div></div>'
+    +'<div class="msec"><h5>名品录</h5><div class="spec-mini">'+specs+'</div></div>'
+    +'<div class="msec"><h5>焦骨传说</h5><p>相传，武则天寒冬游上苑，下诏令百花齐放：“明朝游上苑，火速报春知。花须连夜发，莫待晓风吹。”百花畏威而开，唯牡丹抗旨。女皇震怒，将牡丹贬至洛阳邙山，并加以焚烧。谁知焦枝残干入土，次年竟开得更盛，枝上焦痕遂成“焦骨牡丹”之名。<br><span style="color:#7a4a32">——此系民间传说（明·冯梦龙《醒世恒言》亦有演绎），非正史所载。</span></p></div>'
+    +'<div class="msec"><h5>诗词录</h5>'
+    +'<div class="poem-line">庭前芍药妖无格，池上芙蕖净少情。唯有牡丹真国色，花开时节动京城。<span class="src">唐 · 刘禹锡《赏牡丹》</span></div>'
+    +'<div class="poem-line">云想衣裳花想容，春风拂槛露华浓。<span class="src">唐 · 李白《清平调》</span></div>'
+    +'<div class="poem-line">落尽残红始吐芳，佳名唤作百花王。竞夸天下无双艳，独立人间第一香。<span class="src">唐 · 皮日休《牡丹》</span></div>'
+    +'<div class="poem-line">洛阳地脉花最宜，牡丹尤为天下奇。<span class="src">宋 · 欧阳修《洛阳牡丹图》</span></div></div>'
+    +'<div class="msec"><h5>意象录</h5><p>花开富贵，是民间最深的祝愿；凤穿牡丹，是纹样里的圆满；缠枝牡丹，是瓷器上绕不完的好日子。富贵而不俗艳——这正是牡丹的性子。</p></div>'
+    +'<div class="srcnote">工序与传说参考：洛阳市人民政府“洛阳市花”专题、文化和旅游部官网“牡丹传奇”专题、洛阳日报报业集团牡丹瓷工艺报道、中新社洛阳牡丹瓷“大师课”报道。传说部分为民间故事。</div>';
+}
+function dossierBody(){
+  return `<div class="dossier-hero">
+    <div class="dimg"><img src="assets/sujin_core.png" alt="苏烬 · 工作装" onerror="this.style.display='none'"></div>
+    <div class="dmain"><div class="dname">苏烬</div><div class="dalias">Suze · 烬姐 · 独立插画师 / 自由策展人</div>
+    <div class="kv"><dt>年龄</dt><dd>26</dd><dt>气质</dt><dd>清冷 · 利落 · 外柔内刚。眼神温和，但有锋芒。不是甜妹，是“有故事的女同学”。</dd><dt>配色</dt><dd>炭黑 / 赭石红 / 米白。全身焦褐感，拒绝粉嫩芭比色。</dd></div></div></div>
+    <div class="msec"><h5>姓名考</h5><p>“苏”取苏生——死而复生。牡丹被焚、入土、复生，她的名字就是那场火之后的春天。“烬”直指灰烬——她不是温室里娇艳的花，是从烈火余烬里走出来的女人。</p></div>
+    <div class="msec"><h5>三大识别符号</h5><p><b>灼烧刘海</b>——右侧一绺焦糖/炭棕挑染，发尾呈不规则的“烧焦”卷曲，火焰舔舐过的痕迹。<br><b>左臂纹身</b>——小臂内侧暗红色凤凰与牡丹枝蔓的抽象纹身，实为烧伤愈合后的皮肤纹理艺术化处理。日常长袖若隐若现；卷起袖子，便是她的“勋章”。<br><b>妆容</b>——红棕眼影大面积晕染，眼角一笔极细红线（牡丹花瓣的弧线），替代假睫毛；唇色常年哑光“焦土红”，不媚俗而有气场。</p></div>
+    <div class="msec"><h5>衣橱</h5><div class="dimgline"><figure><img src="assets/sujin_street.png" alt="苏烬 · 三视图" onerror="this.style.display='none'"><figcaption>三视图 · 黑马甲 + 牡丹刺绣 + 束脚裤</figcaption></figure></div>
+    <p style="margin-top:8px">工作/通勤：米白不对称廓形西装（左肩激光切割牡丹花瓣镂空）+ 炭黑拖地阔腿裤 + 金属链条耳饰。<br>街头/休闲：烧花工艺暗红吊带裙（火洞焦边）+ 黑色皮短外套 + 马丁靴。被灼烧过，依然盛放。</p></div>
+    <div class="msec"><h5>人物小传</h5><p>她曾是广告公司熬夜改稿的“画图机器”。职场 PUA、作品被剽窃、通宵后被否定——挫败像陶土，一层层糊上来。<br>一个暴雨夜，她烧掉了自己所有的获奖证书和工牌。那是她的“火烧上林苑”。<br>她把自己关进出租屋，用炭笔和红色马克笔，在焦黄的牛皮纸上画出第一版《焦骨牡丹》系列插画。<br>如今的她是一名独立创作者：把伤痕画进设计里，把“不听话”写在简历里。面对客户的无理要求，她只微笑回应——</p></div>
+    <div class="dsig">“抱歉，我烧过的东西，不会再烧第二次。”<span class="who">—— 苏烬 · 《焦骨牡丹》系列 · 创作手记</span></div>
+    <div class="note-old">前身档案：焦小丹——以牡丹少女为造型基础的软萌名字，装不下焦骨。如今她叫苏烬。牡丹瓷花瓣上的焦褐色灼烧纹路，依然保留。</div>
+    <div class="srcnote">本档案为虚构角色设定，与任何现实人物无关。</div>`;
+}
+function openDossier(){openModal('0号档案 · 苏烬','SD-0 · 焦骨牡丹系列 · 最高权限',dossierBody());}
+
+/* ================= 交互绑定 ================= */
+function bindAct(i){
+  const a=ACTS[i],st=$('stage');
+  st.querySelectorAll('.rift').forEach(el=>el.addEventListener('click',()=>openRift(+el.dataset.r)));
+  const nb=$('nextBtn');
+  if(nb)nb.addEventListener('click',()=>{SFX.play('blip');S.act=i+1;saveS();render();});
+
+  if(a.type==='knead'){
+    const btn=$('kneadBtn'),clay=$('clay'),ctr=$('kctr');
+    btn.addEventListener('click',()=>{
+      if(S.knead>=12)return;
+      S.knead++;SFX.play('blip');
+      clay.classList.add('squish');setTimeout(()=>clay.classList.remove('squish'),180);
+      ctr.textContent=Math.min(S.knead,12);
+      if(S.knead>=12){clay.classList.add('kneaded');SFX.play('chime');setDone(0);}
+      else saveS();
+    });
+  }
+  if(a.type==='shape'){
+    const sb=$('shapeBtn'),wheel=$('wheel'),bar=$('shapeBar'),pct=$('shapePct'),rev=$('vesselReveal');
+    let iv=null;
+    const stop=()=>{if(iv){clearInterval(iv);iv=null;}wheel.classList.remove('spin');};
+    const start=()=>{
+      if(S.shape>=100)return;
+      SFX.ac();SFX.play('blip');wheel.classList.add('spin');
+      iv=setInterval(()=>{
+        S.shape=Math.min(100,S.shape+1.6);
+        bar.style.width=S.shape+'%';pct.textContent=Math.round(S.shape);
+        rev.style.clipPath='inset('+(100-S.shape)+'% 0 0 0)';
+        if(S.shape>=100){stop();setDone(1);}
+      },50);
+    };
+    sb.addEventListener('pointerdown',start);
+    sb.addEventListener('pointerup',stop);
+    sb.addEventListener('pointerleave',stop);
+  }
+  if(a.type==='flower'){
+    st.querySelectorAll('.spec-card').forEach(el=>el.addEventListener('click',()=>{
+      const j=+el.dataset.s;
+      if(!S.spec[j]){S.spec[j]=true;SFX.play('blip');saveS();}
+      render();
+    }));
+    st.querySelectorAll('.qo').forEach(el=>{
+      if(el.disabled)return;
+      el.addEventListener('click',()=>{
+        const j=+el.dataset.q,k=+el.dataset.k,q=QUIZ[j];
+        if(S.qA[j]===true)return;
+        if(k===q.a){S.qA[j]=true;S.qWrong=null;SFX.play('chime');saveS();render();
+          if(S.qA.every(x=>x===true))setDone(2);
+        }else{S.qA[j]=false;S.qWrong=[j,k];SFX.play('thud');saveS();render();}
+      });
+    });
+  }
+  if(a.type==='glaze'){
+    st.querySelectorAll('.g-pot').forEach(el=>el.addEventListener('click',()=>{S.pick=el.dataset.g;SFX.play('blip');saveS();render();}));
+    st.querySelectorAll('.g-zone').forEach(el=>el.addEventListener('click',()=>{
+      const z=el.dataset.zone;
+      if(!S.pick){const s=$('actStatus');if(s)s.textContent='先选一色釉。';return;}
+      S.glaze[z]=S.pick;SFX.play('blip');saveS();render();
+      if(S.glaze.petal&&S.glaze.heart&&S.glaze.body){SFX.play('chime');setDone(3);}
+    }));
+  }
+  if(a.type==='fire'){
+    const fb=$('fireBtn');
+    let iv=null,cr=null;
+    const stop=()=>{if(iv){clearInterval(iv);iv=null;}if(cr){clearInterval(cr);cr=null;}};
+    const start=()=>{
+      if(S.temp>=1320)return;
+      SFX.ac();SFX.play('whoosh');
+      iv=setInterval(()=>{
+        S.temp=Math.min(1320,S.temp+6);
+        const bi=document.querySelector('.gbar i');if(bi)bi.style.width=Math.min(S.temp/1320*100,100)+'%';
+        const gt=document.querySelector('.gtemp');if(gt)gt.textContent=Math.round(S.temp)+' ℃';
+        const ms=document.querySelector('.fire-ms');
+        if(ms)ms.textContent=S.temp>=1320?'窑内 1320℃。釉水熔融，火色正旺——':S.temp>=950?'950℃。素烧的临界。瓷骨变硬，如同人学会不弯腰。':S.temp>=300?'300℃。水分蒸干，泥胎初定。':'窑内尚冷。添柴，让火醒过来。';
+        const door=document.querySelector('.kiln .door'),fl=document.querySelector('.kiln .flame');
+        if(door)door.classList.toggle('hot',S.temp>0);
+        if(fl)fl.classList.toggle('lit',S.temp>0);
+        if(S.temp>=1320){stop();SFX.play('chime');setDone(4);}
+        else saveS();
+      },70);
+      cr=setInterval(()=>SFX.play('crackle'),420);
+    };
+    fb.addEventListener('pointerdown',start);
+    fb.addEventListener('pointerup',stop);
+    fb.addEventListener('pointerleave',stop);
+  }
+  if(a.type==='kiln'){
+    const ok=$('openKiln');
+    if(ok)ok.addEventListener('click',()=>{S.opened=true;SFX.play('whoosh');saveS();render();});
+    const od=$('openDossier');
+    if(od)od.addEventListener('click',()=>{SFX.play('chime');openDossier();});
+    const lt=$('lockTiles');
+    if(lt)lt.querySelectorAll('.ltile').forEach(el=>el.addEventListener('click',()=>{
+      const c=el.dataset.c,exp=LOCK_WORD[S.lockSeq.length],seq=$('lockSeq'),msg=$('lockMsg');
+      if(c===exp){
+        S.lockSeq.push(c);el.classList.add('used');el.disabled=true;SFX.play('blip');
+        seq.textContent=LOCK_WORD.map((x,j)=>S.lockSeq.length>j?x:'▢').join(' ');
+        if(S.lockSeq.length===LOCK_WORD.length){
+          SFX.play('chime');S.lockDone=true;S.lockSeq=[];S.done[5]=true;
+          startEnding();
+        }
+      }else{
+        msg.textContent='不对。她烧掉的东西，有它自己的顺序。';
+        msg.classList.remove('bad');void msg.offsetWidth;msg.classList.add('bad');
+        SFX.play('thud');
+      }
+    }));
+  }
+}
+
+/* ================= 初始化 ================= */
+function init(){
+  loadS();
+  S.act=Math.min(S.act,S.maxUnlocked);
+  const ig=$('introBg');ig.style.backgroundImage="url('assets/sujin_scene.png')";
+  $('igniteBtn').addEventListener('click',()=>{
+    SFX.ac();SFX.play('whoosh');S.started=true;saveS();
+    $('intro').classList.add('hidden');$('game').classList.remove('hidden');render();
+  });
+  $('btnCodex').addEventListener('click',()=>{SFX.play('blip');openModal('牡丹图鉴','Paeonia · 花王手记',codexBody());});
+  $('btnRifts').addEventListener('click',()=>{SFX.play('blip');openRiftList();});
+  $('btnReset').addEventListener('click',()=>{
+    SFX.play('blip');
+    const m=openModal('重新开始','这一炉，要被烧尽',
+      '<div class="rip-note" style="font-size:13px;line-height:1.9;color:#3d2d1e">六幕进度、裂隙残字、已解锁的档案——这一炉的全部痕迹都会被抹去，回到点火前的序幕。<br>确定要烧掉这一炉吗？</div>'
+      +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap">'
+      +'<button class="btn ghost" id="resetNo">再想想</button>'
+      +'<button class="btn red" id="resetYes">烧掉，重新开始</button></div>');
+    m.querySelector('#resetNo').addEventListener('click',closeModal);
+    m.querySelector('#resetYes').addEventListener('click',()=>{try{localStorage.removeItem(KEY);}catch(e){}location.reload();});
+  });
+  const bs=$('btnSound');
+  const sync=()=>bs.textContent='声音 · '+(SFX.on?'开':'关');
+  bs.addEventListener('click',()=>{SFX.on=!SFX.on;sync();});
+  $('rail').addEventListener('click',e=>{
+    const b=e.target.closest('.rail-btn');if(!b)return;
+    const j=+b.dataset.a;
+    if(j<=S.maxUnlocked&&j!==S.act){S.act=j;saveS();SFX.play('blip');render();}
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+  $('unlockDossier').addEventListener('click',()=>{SFX.play('chime');openDossier();});
+  $('closeEnding').addEventListener('click',()=>{$('ending').classList.remove('on');});
+  sync();
+  try{
+    console.log('%c苏烬 · 0号档案','color:#b04a34;font-size:16px;font-weight:bold');
+    console.log('%c你找到了这里。灰烬里有一段话：\n\n  「抱歉，我烧过的东西，不会再烧第二次。」\n\n%c档案编号 SD-0-0926 · 别告诉别人。','color:#c9a978;font-size:13px','color:#8d7c66;font-size:11px');
+  }catch(e){}
+  const titles=['焦骨·烬窑 — 苏烬的数字窑房','▓▒░ 烬窑 ░▒▓ — 信号不稳','焦骨·烬窑 — 她在窑口等你'];
+  let ti=0;
+  setInterval(()=>{ti++;document.title=titles[ti%3];},6000);
+  setTimeout(()=>{document.title=titles[0];},800);
+  if(S.started){$('intro').classList.add('hidden');$('game').classList.remove('hidden');render();}
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</script>
+</body>
+</html>
