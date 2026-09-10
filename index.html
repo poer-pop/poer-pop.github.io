@@ -571,7 +571,7 @@ const NEUTRAL={petal:'#e2d3b4',heart:'#cdb891',body:'#efe6d2'};
 /* ================= 渲染调度 ================= */
 function render(){renderRail();renderFrags();renderAct();}
 function renderRail(){
-  $('rail').innerHTML=ACTS.map((a,i)=>'
+  $('rail').innerHTML=ACTS.map((a,i)=>
     '<button class="rail-btn '+(i===S.act?'cur':'')+(S.done[i]?' done':'')+(i<=S.maxUnlocked?'':' locked')+'" data-a="'+i+'"><span class="rc">'+a.code+'</span>'+a.title+'</button>').join('');
 }
 function renderFrags(){
