@@ -784,12 +784,12 @@ function codexBody(){
 }
 function dossierBody(){
   return `<div class="dossier-hero">
-    <div class="dimg"><img src="assets/sujin_core.png" alt="苏烬 · 工作装" onerror="this.style.display='none'"></div>
+    <div class="dimg"><img src="sujin_core.png" alt="苏烬 · 工作装" onerror="this.style.display='none'"></div>
     <div class="dmain"><div class="dname">苏烬</div><div class="dalias">Suze · 烬姐 · 独立插画师 / 自由策展人</div>
     <div class="kv"><dt>年龄</dt><dd>26</dd><dt>气质</dt><dd>清冷 · 利落 · 外柔内刚。眼神温和，但有锋芒。不是甜妹，是“有故事的女同学”。</dd><dt>配色</dt><dd>炭黑 / 赭石红 / 米白。全身焦褐感，拒绝粉嫩芭比色。</dd></div></div></div>
     <div class="msec"><h5>姓名考</h5><p>“苏”取苏生——死而复生。牡丹被焚、入土、复生，她的名字就是那场火之后的春天。“烬”直指灰烬——她不是温室里娇艳的花，是从烈火余烬里走出来的女人。</p></div>
     <div class="msec"><h5>三大识别符号</h5><p><b>灼烧刘海</b>——右侧一绺焦糖/炭棕挑染，发尾呈不规则的“烧焦”卷曲，火焰舔舐过的痕迹。<br><b>左臂纹身</b>——小臂内侧暗红色凤凰与牡丹枝蔓的抽象纹身，实为烧伤愈合后的皮肤纹理艺术化处理。日常长袖若隐若现；卷起袖子，便是她的“勋章”。<br><b>妆容</b>——红棕眼影大面积晕染，眼角一笔极细红线（牡丹花瓣的弧线），替代假睫毛；唇色常年哑光“焦土红”，不媚俗而有气场。</p></div>
-    <div class="msec"><h5>衣橱</h5><div class="dimgline"><figure><img src="assets/sujin_street.png" alt="苏烬 · 三视图" onerror="this.style.display='none'"><figcaption>三视图 · 黑马甲 + 牡丹刺绣 + 束脚裤</figcaption></figure></div>
+    <div class="msec"><h5>衣橱</h5><div class="dimgline"><figure><img src="sujin_street.png" alt="苏烬 · 三视图" onerror="this.style.display='none'"><figcaption>三视图 · 黑马甲 + 牡丹刺绣 + 束脚裤</figcaption></figure></div>
     <p style="margin-top:8px">工作/通勤：米白不对称廓形西装（左肩激光切割牡丹花瓣镂空）+ 炭黑拖地阔腿裤 + 金属链条耳饰。<br>街头/休闲：烧花工艺暗红吊带裙（火洞焦边）+ 黑色皮短外套 + 马丁靴。被灼烧过，依然盛放。</p></div>
     <div class="msec"><h5>人物小传</h5><p>她曾是广告公司熬夜改稿的“画图机器”。职场 PUA、作品被剽窃、通宵后被否定——挫败像陶土，一层层糊上来。<br>一个暴雨夜，她烧掉了自己所有的获奖证书和工牌。那是她的“火烧上林苑”。<br>她把自己关进出租屋，用炭笔和红色马克笔，在焦黄的牛皮纸上画出第一版《焦骨牡丹》系列插画。<br>如今的她是一名独立创作者：把伤痕画进设计里，把“不听话”写在简历里。面对客户的无理要求，她只微笑回应——</p></div>
     <div class="dsig">“抱歉，我烧过的东西，不会再烧第二次。”<span class="who">—— 苏烬 · 《焦骨牡丹》系列 · 创作手记</span></div>
@@ -913,7 +913,7 @@ function bindAct(i){
 function init(){
   loadS();
   S.act=Math.min(S.act,S.maxUnlocked);
-  const ig=$('introBg');ig.style.backgroundImage="url('assets/sujin_scene.png')";
+  const ig=$('introBg');ig.style.backgroundImage="url('sujin_scene.png')";
   $('igniteBtn').addEventListener('click',()=>{
     SFX.ac();SFX.play('whoosh');S.started=true;saveS();
     $('intro').classList.add('hidden');$('game').classList.remove('hidden');render();
